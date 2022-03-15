@@ -1,0 +1,22 @@
+{
+  "name": "stakecoin",
+  "version": "1.0.0",
+  "description": "This project is a basic Staking smart contract use case. If the user stakes a certain amount of token the user is incentivized with a certain percentage of thier stake.",
+  "main": "hardhat.config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "chai": "^4.3.6",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.6.0",
+    "hardhat": "^2.9.1"
+  }
+}
