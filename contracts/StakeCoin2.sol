@@ -2,13 +2,13 @@
     pragma solidity ^0.8.0;
 
     import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
+    
     contract stakeToken is ERC20 {
 
         address public admin;
 
         constructor() ERC20('StakeCoin', 'STC') {
-            _mint(msg.sender, 10^18);
+            _mint(msg.sender, 1000*8);
         }
 
         //Stake
@@ -31,23 +31,24 @@
 
         function addStakeholder(address _stakeholder, uint Stake_amount) internal {
         (Stake_amount > 0, "Stake amount cannot be zero");
-        require(balanceOf(msg.sender) >= Stake_amount, "Low Balance" );
+        require(balanceOf(_stakeholder) >= Stake_amount, "Low Balance" );
 
         (bool _isStakeholder, ) = checkStakeholder(_stakeholder);
         if(!_isStakeholder){
             stakeholders.push(_stakeholder);
-            _burn(msg.sender, Stake_amount);
+            _burn(_stakeholder, Stake_amount);
+            adder(stakes[_stakeholder].amount,Stake_amount);
         } 
 
         }
 
         function removeStakeholder(address _stakeholder) internal
         {
-        (bool _isStakeholder, uint256 s) = checkStakeholder(_stakeholder);
+        (bool _isStakeholder, ) = checkStakeholder(_stakeholder);
         if(_isStakeholder){
             uint reward = adder(rewards[_stakeholder], stakes[_stakeholder].amount);
             _mint(_stakeholder,reward);
-
+            stakeholders.pop(_stakeholder);
         }
         }
 
@@ -61,7 +62,7 @@
         return rewards[msg.sender];
         }
 
-
+    
         function adder(uint x, uint y) internal pure returns(uint){
             return x + y;
         } 
