@@ -5,23 +5,21 @@
     
     contract stakeToken is ERC20 {
 
-        address public admin;
-
-        constructor() ERC20('StakeCoin', 'STC') {
+         constructor() ERC20('StakeCoin', 'STC') {
             _mint(msg.sender, 1000*8);
         }
 
-        //Stake
+//Stake
         struct stake_amount{
             uint amount;
             uint Timestamp;   
         }        
 
-        uint staking_time;
         address[] internal stakeholders;
         mapping(address => stake_amount)internal stakes;
         mapping(address => uint) internal rewards;
 
+//CHECK STAKEHOLDER
         function checkStakeholder(address _address) public view returns(bool, uint256){
         for (uint s = 0; s < stakeholders.length; s += 1){
             if (_address == stakeholders[s]) return (true, s);
@@ -29,76 +27,60 @@
         return (false, 0);
         }
 
-        function addStakeholder(address _stakeholder, uint Stake_amount) internal {
-        (Stake_amount > 0, "Stake amount cannot be zero");
-        require(balanceOf(_stakeholder) >= Stake_amount, "Low Balance" );
-
-        (bool _isStakeholder, ) = checkStakeholder(_stakeholder);
-        if(!_isStakeholder){
-            stakeholders.push(_stakeholder);
-            _burn(_stakeholder, Stake_amount);
-            adder(stakes[_stakeholder].amount,Stake_amount);
+//ADD STAKE
+        function addStake(uint _amount) public {
+            require(balanceOf(msg.sender) >= _amount, "Low STC coin");
+            stakeholders.push(msg.sender);
+            _burn(msg.sender, _amount);
+            stakes[msg.sender].amount += _amount;
+            stakes[msg.sender].Timestamp = block.timestamp; 
+        }
+//SUBTRACT
+        function sub(uint x, uint y) internal pure returns(uint){
+            return x - y;
+        } 
+//ADD
+        function adder(uint x, uint y) internal pure returns(uint){
+            return x + y;
         } 
 
-        }
-
+//Remove Stakeholder
         function removeStakeholder(address _stakeholder) internal
         {
-        (bool _isStakeholder, ) = checkStakeholder(_stakeholder);
+        (bool _isStakeholder, uint s) = checkStakeholder(_stakeholder);
         if(_isStakeholder){
-            uint reward = adder(rewards[_stakeholder], stakes[_stakeholder].amount);
-            _mint(_stakeholder,reward);
-            stakeholders.pop(_stakeholder);
+         stakeholders[s] = stakeholders[stakeholders.length - 1];
+         stakeholders.pop();
+            stakeholders.pop();
         }
         }
 
+//REMOVE STAKE
+        function removeStake(uint _stake) public{
+            require(_stake != 0, "Invalid stake amount");
+            require(stakes[msg.sender].amount >= _stake, "Invalid stake amount");
+            stakes[msg.sender].amount = sub(stakes[msg.sender].amount ,_stake);
+            _mint(msg.sender, _stake);
+            if(stakes[msg.sender].amount == 0) removeStakeholder(msg.sender);
+        }   
 
-        function holderReward(address _stakehldr) public view returns(uint){
-        return rewards[_stakehldr];
-        }
-
+//CHECK MY REWARD
         function MyReward() public view returns(uint)
         {
         return rewards[msg.sender];
         }
 
-    
-        function adder(uint x, uint y) internal pure returns(uint){
-            return x + y;
-        } 
-        
-        function sub(uint x, uint y) internal pure returns(uint){
-            return x - y;
-        } 
-
-        function startStake() public returns(uint){
-            staking_time = block.timestamp;
-            return staking_time;
-            }
-            
-        function createStake(uint _stake) public {
-        
-            if(stakes[msg.sender].amount == 0) addStakeholder(msg.sender, _stake);
-            
-            stakes[msg.sender].amount = adder(stakes[msg.sender].amount,_stake);
-                stakes[msg.sender].Timestamp = block.timestamp;
-
-        }
-
-        function removeStake(uint _stake) public{
-            stakes[msg.sender].amount = sub(stakes[msg.sender].amount,_stake);
-            if(stakes[msg.sender].amount == 0) removeStakeholder(msg.sender);
-        }
-
+//PERCENTAGE FINDER
         function mulDiv(uint _percent, uint _amount, uint z) internal pure returns(uint){
             return _percent * _amount/z;
         }
-    
+
+//CALCULATE REWARD
         function calculateReward(address holder) public view returns(uint ){
-        uint period = (stakes[holder].Timestamp - staking_time) / 60 / 60 / 24;
-           //uint amt = stak[msg.sender].amount;
+        //uint period = (stakes[holder].Timestamp - block.timestamp) / 60 / 60 / 24;
+        uint period = (stakes[holder].Timestamp - block.timestamp) / 60 ;
         uint reward;
-        if(period >= 30 || period < 60){
+        if(period >= 2 || period < 60){
             reward = mulDiv (15, stakes[holder].amount, 10^8);
         }else if(period >= 60 || period < 90){
             reward = mulDiv (30, stakes[holder].amount, 10^8);
@@ -116,9 +98,14 @@
             }
         }
 
-        function withdrawReward() public {
+
+
+//WITHDRAW REWARDS
+        function withdrawReward() public { 
+        require(rewards[msg.sender] != 0, "No Reward available");
         uint reward = rewards[msg.sender];
         rewards[msg.sender] = 0;
         _mint(msg.sender, reward);
         }
+
     }
