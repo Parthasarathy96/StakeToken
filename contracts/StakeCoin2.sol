@@ -77,8 +77,7 @@
 
 //CALCULATE REWARD
         function calculateReward(address holder) public view returns(uint ){
-        //uint period = (stakes[holder].Timestamp - block.timestamp) / 60 / 60 / 24;
-        uint period = (stakes[holder].Timestamp - block.timestamp) / 60 ;
+        uint period = (stakes[holder].Timestamp - block.timestamp) / 60 / 60 / 24;
         uint reward;
         if(period >= 2 || period < 60){
             reward = mulDiv (15, stakes[holder].amount, 10^8);
